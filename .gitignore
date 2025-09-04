@@ -13,3 +13,4 @@ data
 opactl_*
 files
 .go
+opa-control-plane
