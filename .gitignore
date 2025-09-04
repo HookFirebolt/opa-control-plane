@@ -7,3 +7,4 @@ bundles/
 data
 opactl_*
 files
+opa-control-plane
