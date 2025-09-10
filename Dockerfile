@@ -1,6 +1,10 @@
 # Build stage
 FROM golang:1.24.0 AS builder
 WORKDIR /app
+# Copy go.mod and go.sum first, then download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
 RUN go build -o opa-control-plane 
 
