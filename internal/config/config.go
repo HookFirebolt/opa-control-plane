@@ -382,7 +382,7 @@ func (s *Bundle) Equal(other *Bundle) bool {
 
 // Source defines the configuration for a OPA Control Plane Source.
 type Source struct {
-	Name          string       `json:"-" yaml:"-"`
+	Name          string       `json:"name,omitempty" yaml:"name,omitempty"`
 	Builtin       *string      `json:"builtin,omitempty" yaml:"builtin,omitempty"`
 	Git           Git          `json:"git,omitempty" yaml:"git,omitempty"`
 	Datasources   Datasources  `json:"datasources,omitempty" yaml:"datasources,omitempty"`
