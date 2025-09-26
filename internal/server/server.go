@@ -13,6 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/open-policy-agent/opa/server/writer"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/styrainc/opa-control-plane/internal/config"
 	"github.com/styrainc/opa-control-plane/internal/database"
 	"github.com/styrainc/opa-control-plane/internal/server/types"
@@ -35,6 +36,7 @@ func (s *Server) Init() *Server {
 
 	public := s.router.PathPrefix("/").Subrouter()
 	public.Handle("/health", http.HandlerFunc(s.health)).Methods(http.MethodGet)
+	public.Handle("/metrics", promhttp.Handler()).Methods(http.MethodGet)
 
 	api := s.router.PathPrefix("/v1").Subrouter()
 	api.Handle("/sources/{source:.+}/data/{path:.+}", http.HandlerFunc(s.v1SourcesDataGet)).Methods(http.MethodGet)

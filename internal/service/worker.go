@@ -3,12 +3,14 @@ package service
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/open-policy-agent/opa/ast" // nolint:staticcheck
 	"github.com/styrainc/opa-control-plane/internal/builder"
 	"github.com/styrainc/opa-control-plane/internal/config"
 	"github.com/styrainc/opa-control-plane/internal/logging"
+	"github.com/styrainc/opa-control-plane/internal/metrics"
 	"github.com/styrainc/opa-control-plane/internal/progress"
 	"github.com/styrainc/opa-control-plane/internal/s3"
 )
@@ -93,6 +95,13 @@ func (worker *BundleWorker) UpdateConfig(b *config.Bundle, sources []*config.Sou
 // Execute runs a bundle synchronization iteration: git sync, bundle construct
 // and then push bundles to object storage.
 func (w *BundleWorker) Execute(ctx context.Context) time.Time {
+	fmt.Println("Starting bundle build for", w.bundleConfig.Name)
+	metrics.BundleBuildCount.Inc()
+	startTime := time.Now()
+	defer func() {
+		metrics.BundleBuildDuration.WithLabelValues(w.bundleConfig.Name).Observe(time.Now().Sub(startTime).Seconds())
+		fmt.Println("Bundle build for", w.bundleConfig.Name, "took", time.Now().Sub(startTime).Seconds())
+	}()
 
 	defer w.bar.Add(1)
 
@@ -110,9 +119,11 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 		}
 	}
 
+	//Jacob: These are the git syncs and other stuff
 	for _, synchronizer := range w.synchronizers {
 		err := synchronizer.Execute(ctx)
 		if err != nil {
+			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "sync failed").Inc()
 			w.log.Warnf("failed to synchronize bundle %q: %v", w.bundleConfig.Name, err)
 			return w.report(ctx, BuildStateSyncFailed, err)
 		}
@@ -120,6 +131,7 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 
 	for _, src := range w.sources {
 		if err := src.Transform(ctx); err != nil {
+			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "transform failed").Inc()
 			w.log.Warnf("failed to evaluate source %q for bundle %q: %v", src.Name, w.bundleConfig.Name, err)
 			return w.report(ctx, BuildStateTransformFailed, err)
 		}
@@ -134,12 +146,14 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 
 	err := b.Build(ctx)
 	if err != nil {
+		metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "build failed").Inc()
 		w.log.Warnf("failed to build a bundle %q: %v", w.bundleConfig.Name, err)
 		return w.report(ctx, BuildStateBuildFailed, err)
 	}
 
 	if w.storage != nil {
 		if err := w.storage.Upload(ctx, bytes.NewReader(buffer.Bytes())); err != nil {
+			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "upload failed").Inc()
 			w.log.Warnf("failed to upload bundle %q: %v", w.bundleConfig.Name, err)
 			return w.report(ctx, BuildStatePushFailed, err)
 		}

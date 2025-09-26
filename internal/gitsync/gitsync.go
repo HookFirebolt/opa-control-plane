@@ -13,6 +13,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/go-git/go-git/v5"
@@ -23,6 +24,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/styrainc/opa-control-plane/internal/config"
+	"github.com/styrainc/opa-control-plane/internal/metrics"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -52,12 +54,20 @@ func New(path string, config config.Git, sourceName string) *Synchronizer {
 // on disk, clone it. If it does exist, pull the latest changes and rebase the local branch onto the remote branch.
 func (s *Synchronizer) Execute(ctx context.Context) error {
 	if err := s.execute(ctx); err != nil {
+		metrics.GitSyncFailed.WithLabelValues(s.sourceName, "git sync failed").Inc()
 		return fmt.Errorf("source %q: git synchronizer: %v: %w", s.sourceName, s.config.Repo, err)
 	}
 	return nil
 }
 
 func (s *Synchronizer) execute(ctx context.Context) error {
+	fmt.Println("Starting git sync for", s.config.Repo, "used by source", s.sourceName)
+	metrics.GitSyncCount.Inc()
+	startTime := time.Now()
+	defer func() {
+		fmt.Println("Completed git sync for", s.config.Repo, "used by source", s.sourceName, "took", time.Now().Sub(startTime).Seconds())
+		metrics.GitSyncDuration.WithLabelValues(s.sourceName, s.config.Repo).Observe(float64(time.Now().Sub(startTime).Seconds()))
+	}()
 	var repository *git.Repository
 
 	authMethod, err := s.auth(ctx)
