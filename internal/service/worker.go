@@ -100,7 +100,7 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 	startTime := time.Now()
 	defer func() {
 		metrics.BundleBuildDuration.WithLabelValues(w.bundleConfig.Name).Observe(time.Now().Sub(startTime).Seconds())
-		fmt.Println("Bundle build for", w.bundleConfig.Name, "took", time.Now().Sub(startTime).Seconds())
+		fmt.Println("Bundle build for", w.bundleConfig.Name, "took", time.Now().Sub(startTime).Seconds(), "seconds")
 	}()
 
 	defer w.bar.Add(1)

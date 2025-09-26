@@ -65,7 +65,7 @@ func (s *Synchronizer) execute(ctx context.Context) error {
 	metrics.GitSyncCount.Inc()
 	startTime := time.Now()
 	defer func() {
-		fmt.Println("Completed git sync for", s.config.Repo, "used by source", s.sourceName, "took", time.Now().Sub(startTime).Seconds())
+		fmt.Println("Completed git sync for", s.config.Repo, "used by source", s.sourceName, "took", time.Now().Sub(startTime).Seconds(), "seconds")
 		metrics.GitSyncDuration.WithLabelValues(s.sourceName, s.config.Repo).Observe(float64(time.Now().Sub(startTime).Seconds()))
 	}()
 	var repository *git.Repository
