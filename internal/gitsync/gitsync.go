@@ -54,7 +54,7 @@ func New(path string, config config.Git, sourceName string) *Synchronizer {
 // on disk, clone it. If it does exist, pull the latest changes and rebase the local branch onto the remote branch.
 func (s *Synchronizer) Execute(ctx context.Context) error {
 	if err := s.execute(ctx); err != nil {
-		metrics.GitSyncFailed.WithLabelValues(s.sourceName, "git sync failed").Inc()
+		metrics.GitSyncFailed.WithLabelValues(s.sourceName).Inc()
 		return fmt.Errorf("source %q: git synchronizer: %v: %w", s.sourceName, s.config.Repo, err)
 	}
 	return nil

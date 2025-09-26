@@ -123,7 +123,7 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 	for _, synchronizer := range w.synchronizers {
 		err := synchronizer.Execute(ctx)
 		if err != nil {
-			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "sync failed").Inc()
+			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name).Inc()
 			w.log.Warnf("failed to synchronize bundle %q: %v", w.bundleConfig.Name, err)
 			return w.report(ctx, BuildStateSyncFailed, err)
 		}
@@ -131,7 +131,7 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 
 	for _, src := range w.sources {
 		if err := src.Transform(ctx); err != nil {
-			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "transform failed").Inc()
+			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name).Inc()
 			w.log.Warnf("failed to evaluate source %q for bundle %q: %v", src.Name, w.bundleConfig.Name, err)
 			return w.report(ctx, BuildStateTransformFailed, err)
 		}
@@ -146,14 +146,14 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 
 	err := b.Build(ctx)
 	if err != nil {
-		metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "build failed").Inc()
+		metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name).Inc()
 		w.log.Warnf("failed to build a bundle %q: %v", w.bundleConfig.Name, err)
 		return w.report(ctx, BuildStateBuildFailed, err)
 	}
 
 	if w.storage != nil {
 		if err := w.storage.Upload(ctx, bytes.NewReader(buffer.Bytes())); err != nil {
-			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name, "upload failed").Inc()
+			metrics.BundleBuildFailed.WithLabelValues(w.bundleConfig.Name).Inc()
 			w.log.Warnf("failed to upload bundle %q: %v", w.bundleConfig.Name, err)
 			return w.report(ctx, BuildStatePushFailed, err)
 		}

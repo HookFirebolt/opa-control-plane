@@ -11,7 +11,7 @@ var (
 			Name: "ocp_bundle_build_failed",
 			Help: "Number of times a bundle has failed to build",
 		},
-		[]string{"bundle", "reason"},
+		[]string{"bundle"},
 	)
 
 	BundleBuildCount = promauto.NewCounter(
@@ -35,7 +35,7 @@ var (
 			Name: "ocp_git_sync_failed_total",
 			Help: "Total number of failed Git sync operations",
 		},
-		[]string{"source", "reason"},
+		[]string{"source"},
 	)
 
 	GitSyncCount = promauto.NewCounter(
