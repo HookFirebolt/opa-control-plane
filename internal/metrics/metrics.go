@@ -11,7 +11,7 @@ var (
 			Name: "ocp_bundle_build_failed",
 			Help: "Number of times a bundle has failed to build",
 		},
-		[]string{"bundle"},
+		[]string{"bundle", "error_type"},
 	)
 
 	BundleBuildCount = promauto.NewCounter(
@@ -26,6 +26,22 @@ var (
 			Name:    "ocp_bundle_build_duration_seconds",
 			Help:    "Bundle build duration in seconds",
 			Buckets: []float64{0.1, 0.2, 0.5, 1, 1.5, 2, 5, 10, 30, 60},
+		},
+		[]string{"bundle"},
+	)
+
+	LastBundleBuildStart = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "ocp_last_bundle_build_start_timestamp",
+			Help: "Unix timestamp of when the last bundle build started",
+		},
+		[]string{"bundle"},
+	)
+
+	LastBundleBuildEnd = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "ocp_last_bundle_build_end_timestamp",
+			Help: "Unix timestamp of when the last bundle build ended",
 		},
 		[]string{"bundle"},
 	)
@@ -50,6 +66,22 @@ var (
 			Name:    "ocp_git_sync_duration_seconds",
 			Help:    "Git sync duration in seconds",
 			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.5, 2, 5, 10, 30, 60},
+		},
+		[]string{"source", "repo"},
+	)
+
+	LastGitSyncStart = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "ocp_last_git_sync_start_timestamp",
+			Help: "Unix timestamp of when the last git sync started",
+		},
+		[]string{"source", "repo"},
+	)
+
+	LastGitSyncEnd = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "ocp_last_git_sync_end_timestamp",
+			Help: "Unix timestamp of when the last git sync ended",
 		},
 		[]string{"source", "repo"},
 	)

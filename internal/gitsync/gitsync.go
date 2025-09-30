@@ -61,13 +61,10 @@ func (s *Synchronizer) Execute(ctx context.Context) error {
 }
 
 func (s *Synchronizer) execute(ctx context.Context) error {
-	fmt.Println("Starting git sync for", s.config.Repo, "used by source", s.sourceName)
-	metrics.GitSyncCount.Inc()
 	startTime := time.Now()
-	defer func() {
-		fmt.Println("Completed git sync for", s.config.Repo, "used by source", s.sourceName, "took", time.Now().Sub(startTime).Seconds(), "seconds")
-		metrics.GitSyncDuration.WithLabelValues(s.sourceName, s.config.Repo).Observe(float64(time.Now().Sub(startTime).Seconds()))
-	}()
+	s.updateStartMetrics(startTime)
+	defer s.updateEndMetrics(startTime)
+
 	var repository *git.Repository
 
 	authMethod, err := s.auth(ctx)
@@ -294,4 +291,14 @@ func (a *basicAuth) SetAuth(r *gohttp.Request) {
 			r.Header.Set(strings.TrimSpace(name), strings.TrimSpace(value))
 		}
 	}
+}
+
+func (s *Synchronizer) updateStartMetrics(startTime time.Time) {
+	metrics.GitSyncCount.Inc()
+	metrics.LastGitSyncStart.WithLabelValues(s.sourceName, s.config.Repo).Set(float64(startTime.Unix()))
+}
+
+func (s *Synchronizer) updateEndMetrics(startTime time.Time) {
+	metrics.GitSyncDuration.WithLabelValues(s.sourceName, s.config.Repo).Observe(float64(time.Now().Sub(startTime).Seconds()))
+	metrics.LastGitSyncEnd.WithLabelValues(s.sourceName, s.config.Repo).Set(float64(time.Now().Unix()))
 }
