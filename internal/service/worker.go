@@ -114,7 +114,6 @@ func (w *BundleWorker) Execute(ctx context.Context) time.Time {
 		}
 	}
 
-	//Jacob: These are the git syncs and other stuff
 	for _, synchronizer := range w.synchronizers {
 		err := synchronizer.Execute(ctx)
 		if err != nil {
