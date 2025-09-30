@@ -209,6 +209,6 @@ func (w *BundleWorker) updateStartMetrics(startTime time.Time) {
 }
 
 func (w *BundleWorker) updateEndMetrics(startTime time.Time) {
-	metrics.BundleBuildDuration.WithLabelValues(w.bundleConfig.Name).Observe(float64(time.Now().Sub(startTime).Seconds()))
+	metrics.BundleBuildDuration.WithLabelValues(w.bundleConfig.Name).Observe(float64(time.Since(startTime).Seconds()))
 	metrics.LastBundleBuildEnd.WithLabelValues(w.bundleConfig.Name).Set(float64(time.Now().Unix()))
 }

@@ -299,6 +299,6 @@ func (s *Synchronizer) updateStartMetrics(startTime time.Time) {
 }
 
 func (s *Synchronizer) updateEndMetrics(startTime time.Time) {
-	metrics.GitSyncDuration.WithLabelValues(s.sourceName, s.config.Repo).Observe(float64(time.Now().Sub(startTime).Seconds()))
+	metrics.GitSyncDuration.WithLabelValues(s.sourceName, s.config.Repo).Observe(float64(time.Since(startTime).Seconds()))
 	metrics.LastGitSyncEnd.WithLabelValues(s.sourceName, s.config.Repo).Set(float64(time.Now().Unix()))
 }
