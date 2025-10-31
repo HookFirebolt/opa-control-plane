@@ -172,6 +172,10 @@ func (s *Secret) Typed(context.Context) (any, error) {
 			return nil, err
 		}
 
+		if value.IntegrationID == 0 || value.InstallationID == 0 || value.PrivateKey == "" {
+			return nil, errors.New("missing integration_id, installation_id or private_key in GitHub App secret")
+		}
+
 		return value, nil
 
 	case "ssh_key":
